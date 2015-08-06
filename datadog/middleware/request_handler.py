@@ -42,6 +42,16 @@ class DatadogMiddleware(object):
 
         return response
 
+    def viewstat(self, request):
+        """ Capture Django get view   """
+        if not hasattr(request, self.DD_TIMING_ATTRIBUTE):
+            return response
+
+        print request
+        request_time = time.time() - getattr(request,self.DD_TIMING_ATTRIBUTE)
+        tags = self._get_metric_tags(request)
+        dog_stats_api.histogram(self.timing_metric, request_time, tags=tags)
+
     def process_exception(self, request, exception):
         """ Captures Django view exceptions as Datadog events """
 
