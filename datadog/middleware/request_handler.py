@@ -5,6 +5,7 @@ try:
     import json
 except ImportError:
     import simplejson as json
+import logging
 
 # django
 from django.conf import settings
@@ -17,6 +18,8 @@ from dogapi import dog_stats_api
 api.api_key = settings.DATADOG_API_KEY
 api.application_key = settings.DATADOG_APP_KEY
 dog_stats_api.start(api_key=settings.DATADOG_API_KEY)
+
+logger = logging.getLogger('datadog.DatadogMiddleware')
 
 class DatadogMiddleware(object):
     DD_TIMING_ATTRIBUTE = '_dd_start_time'
@@ -47,7 +50,6 @@ class DatadogMiddleware(object):
         if not hasattr(request, self.DD_TIMING_ATTRIBUTE):
             return response
 
-        print request
         request_time = time.time() - getattr(request,self.DD_TIMING_ATTRIBUTE)
         tags = self._get_metric_tags(request)
         dog_stats_api.histogram(self.timing_metric, request_time, tags=tags)
