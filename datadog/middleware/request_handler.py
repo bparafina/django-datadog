@@ -49,10 +49,17 @@ class DatadogMiddleware(object):
         """ Capture Django get view   """
         if not hasattr(request, self.DD_TIMING_ATTRIBUTE):
             return response
+        ''' reuse the request.META json-serializer code'''
+        szble = {}
+        for k, v in request.META.items():
+            if isinstance(v, (list, basestring, bool, int, float, long)):
+                szble[k] = v
+            else:
+                szble[k] = str(v)
 
-        request_time = time.time() - getattr(request,self.DD_TIMING_ATTRIBUTE)
         tags = self._get_metric_tags(request)
         dog_stats_api.histogram(self.timing_metric, request_time, tags=tags)
+
 
     def process_exception(self, request, exception):
         """ Captures Django view exceptions as Datadog events """
